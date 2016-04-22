@@ -30,6 +30,18 @@ $(document).ready(function () {
 		$('#canvas-area').html(this.canvas);
 	};
 
+	GameCanvas.prototype.drawAimer = function () {
+		this.context.beginPath();
+		this.context.moveTo(260, 550);
+		this.context.lineTo(250, 600);
+		this.context.lineTo(270, 600);
+		context.fillStyle = 'orange';
+	    context.fill();
+	    context.lineWidth = 2;
+	    context.strokeStyle = '#003300';
+		this.context.closePath();	
+	};
+
 	/* grid to store orbs and locations */
 	GameGrid = function () {
 		this.grid = []; //[row][col]
@@ -58,7 +70,13 @@ $(document).ready(function () {
 		this.diameter  = 30;
 	
 		function randomColor() {
-			var colors = ['#FFE600'/*yellow*/, '#C9C9C9'/*gray*/, '#FF0000'/*red*/, '#1464F4'/*blue*/, '#00EE00'/*green*/, '#FF00FF' /*purple*/];
+			var colors = ['#FFE600'/*yellow*/,
+						  '#C9C9C9'/*gray*/,
+						  '#FF0000'/*red*/,
+						  '#1464F4'/*blue*/,
+						  '#00EE00'/*green*/,
+						  '#FF00FF' /*purple*/,
+						  '#00FFFF'/*light blue*/];
 		
 			return colors[Math.floor(Math.random() * colors.length)];
 		};
@@ -89,13 +107,29 @@ $(document).ready(function () {
 
 	//start game! 
 	$('#start-button').click(function () {
+		$('#start-button').off();
 		gameCanvas = new GameCanvas;
 		gameCanvas.start();
 		gameCanvas.grid.fillGrid();
 		gameCanvas.fillCanvas();
+		gameCanvas.drawAimer();
+		mouseCoordsOnCanvas();
+		
+		//returns current mouse X and Y relative to canvas
+		function mouseCoordsOnCanvas() {
+			var canvasTop  = gameCanvas.canvas.getBoundingClientRect().top,
+				canvasLeft = gameCanvas.canvas.getBoundingClientRect().left;
+
+			$(document).on('mousemove', function (event) {
+				console.log(event.pageX - canvasLeft, event.pageY - canvasTop);
+				
+				var canvasX = event.pageX - canvasLeft,
+					canvasY = event.pageY - canvasTop,
+					mouseCoords = [canvasX, canvasY];
+
+				return mouseCoords;
+			})	
+						 	
+		}
 	});
-
-
-
-
 })
