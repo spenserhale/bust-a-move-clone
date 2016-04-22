@@ -103,7 +103,6 @@ $(document).ready(function () {
 //calculate how many orbs fit in a row
 //at start of game fill 5 rows with orbs
 //offset every other row (orb.diameter/2)
-//make contributions show up on github account
 
 	//start game! 
 	$('#start-button').click(function () {
