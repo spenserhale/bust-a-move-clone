@@ -61,7 +61,7 @@ $(document).ready(function () {
 		this.context.stroke();	
 	};
 
-	/* array grid to store orb data and locations */
+	/* array grid to store orb data and locations   */
 	GameGrid = function () {
 		this.grid = []; //[row][col]
 	};
