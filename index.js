@@ -2,14 +2,10 @@ $(document).ready(function () {
 	
 	/* visible canvas area */
 	GameCanvas = function () {
-			this.canvas = document.createElement('canvas');
+			this.canvas  = document.createElement('canvas');
 			this.context = this.canvas.getContext('2d');
-			this.grid = new GameGrid();
-			this.queue = queueHandler();
-
-			function queueHandler() {
-				var queue = []
-			}
+			this.grid    = new GameGrid();
+			this.queue   = new Queue();
 	};
 
 	/* populates canvas with visible orbs */
@@ -29,7 +25,7 @@ $(document).ready(function () {
 
 	GameCanvas.prototype.start = function () {
 		this.canvas.setAttribute('id', 'canvas');
-		this.canvas.width = 460;
+		this.canvas.width = 465;
 		this.canvas.height = 600;
 		
 		$('#canvas-area').html(this.canvas);
@@ -55,6 +51,7 @@ $(document).ready(function () {
 		}
 
 		context.clearRect(205,560,50,50);
+		this.queue.curr.drawOrb(aimerX, aimerY-15); //draws first orb in queue to pointer location
 		this.context.beginPath();
 		context.lineWidth = 3;
 		context.strokeStyle = "green";	
@@ -86,19 +83,19 @@ $(document).ready(function () {
 
     /* Orb Class */
 	Orb = function(position) {
-		this.position  = position; //array
+		this.position  = position || null; //array or null
 		this.color     = randomColor();
 		this.neighbors = [];
 		this.diameter  = 30;
 	
 		function randomColor() {
-			var colors = ['#FFE600'/*yellow*/,
-						  '#C9C9C9'/*gray*/,
-						  '#FF0000'/*red*/,
-						  '#1464F4'/*blue*/,
-						  '#00EE00'/*green*/,
-						  '#FF00FF' /*purple*/,
-						  '#00FFFF'/*light blue*/];
+			var colors = ['#FFE600'/* yellow */,
+						  '#C9C9C9'/* gray */,
+						  '#FF0000'/* red */,
+						  '#1464F4'/* blue */,
+						  '#00EE00'/* green */,
+						  '#FF00FF' /* purple */,
+						  '#00FFFF'/* light blue */];
 		
 			return colors[Math.floor(Math.random() * colors.length)];
 		};
@@ -116,17 +113,24 @@ $(document).ready(function () {
 	    context.closePath();
 	    context.stroke();
 	};
+
+
+	Queue = function () {
+		this.curr = new Orb();
+		this.onDeck = new Orb();
+	};
+
+	Queue.prototype.nextOrb = function () {
+		this.curr = this.onDeck;
+		this.onDeck = new Orb();
+	};
 //						TO-DO:
 //-------------------------------------------------------
-//make pointer follow mouse.
 //add orb to end of pointer
 //shoot orb
 //collision detection
 //add orb to queue position to the side of the pointer 
 //calculate individual orbs position
-//fill grid according to how many orbs fit in a row
-//calculate how many orbs fit in a row
-//at start of game fill 5 rows with orbs
 
 	//start game! 
 	$('#start-button').click(function () {
@@ -136,6 +140,7 @@ $(document).ready(function () {
 		gameCanvas.grid.fillGrid();
 		gameCanvas.fillCanvas();
 		mouseCoordsOnCanvas();
+		console.log(gameCanvas.queue);
 		
 		//returns current mouse X and Y relative to canvas
 		function mouseCoordsOnCanvas() {
@@ -146,7 +151,6 @@ $(document).ready(function () {
 			$('#canvas').on('mousemove', getMouseCoords);
 			
 			function getMouseCoords (event) {
-				
 				canvasX = event.pageX - canvasLeft;
 				canvasY = event.pageY - canvasTop;
 				mouseCoords = [canvasX, canvasY];
