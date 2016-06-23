@@ -6,6 +6,7 @@ $(document).ready(function () {
 			this.context = this.canvas.getContext('2d');
 			this.grid    = new GameGrid();
 			this.queue   = new Queue();
+			this.mouseCoords = [];
 	};
 
 	/* populates canvas with visible orbs */
@@ -34,6 +35,7 @@ $(document).ready(function () {
 			aimerX = 230,
 			aimerY = 600,
 			mouseAngle = radToDeg(Math.atan2((aimerY+15) - y, x - (aimerX+15)));
+			this.mouseCoords = mouseCoords;
 
 		if (mouseAngle < 0) {
         	mouseAngle = 180 + (180 + mouseAngle);
@@ -47,16 +49,25 @@ $(document).ready(function () {
     		return angle * (Math.PI / 180);
 		}
 
-		context.clearRect(205,560,50,50);
-		this.queue.curr.drawOrb(230, 585); //draws first orb in queue to pointer location
-		this.queue.onDeck.drawOrb(170, 585);
-		this.context.beginPath();
-		context.lineWidth = 3;
-		context.strokeStyle = "green";	
-		this.context.moveTo(aimerX, aimerY-15);
-		this.context.lineTo(aimerX + 1.5 * 15 * Math.cos(degToRad(mouseAngle)),
-						   (aimerY - 15) - 1.5 * 15 * Math.sin(degToRad(mouseAngle))); 
-		this.context.stroke();	
+		function drawQueuedOrbs(that) {
+			that.queue.curr.drawOrb(230, 585); //draws first orb in queue to pointer location
+			that.queue.onDeck.drawOrb(170, 585);
+		};
+
+		function renderAimer (that) {
+			context.clearRect(205,560,50,50);
+			that.context.beginPath();
+			context.lineWidth = 3;
+			context.strokeStyle = "green";	
+			that.context.moveTo(aimerX, aimerY-15);
+			that.context.lineTo(aimerX + 1.5 * 15 * Math.cos(degToRad(mouseAngle)),
+							   (aimerY - 15) - 1.5 * 15 * Math.sin(degToRad(mouseAngle))); 
+			that.context.stroke();	
+		};
+		
+		renderAimer(this);
+		drawQueuedOrbs(this);
+		
 	};
 
 	/* array grid to store orb data and locations */
@@ -130,10 +141,9 @@ $(document).ready(function () {
 	    context.stroke();
 	};
 
-	Orb.prototype.shoot = function (dt) {
-		//shooting logic goes here. logic that takes into account the angle of the pointer.
+	Orb.prototype.shootOrb = function () {
+		//do the thing!
 	}
-
 
 	Queue = function () {
 		this.currPos   = [18, 7]; 
@@ -160,7 +170,9 @@ $(document).ready(function () {
 		gameCanvas = new GameCanvas;
 		gameCanvas.start();
 		mouseCoordsOnCanvas(); //handles drawAimer initiation, eventually will want to make this an attribute on the gameCanvas|* * *|
-
+		$('#canvas').on('mousemove', function () {
+			console.log(gameCanvas.mouseCoords);
+		})
 		
 		//returns current mouse X and Y relative to canvas
 		function mouseCoordsOnCanvas() {
@@ -174,10 +186,12 @@ $(document).ready(function () {
 				canvasX = event.pageX - canvasLeft;
 				canvasY = event.pageY - canvasTop;
 				mouseCoords = [canvasX, canvasY];
-				console.log(mouseCoords);
 				gameCanvas.drawAimer(mouseCoords); 
 			};	
 	
-		}
+		};
+
+		
 	});
+
 })
