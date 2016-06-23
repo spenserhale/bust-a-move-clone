@@ -11,7 +11,7 @@ $(document).ready(function () {
 
 	/* populates canvas with visible orbs */
 	GameCanvas.prototype.fillCanvas = function () {
-		for (var j=0; j 	< this.grid.rows; j++) {
+		for (var j=0; j < this.grid.rows; j++) {
 			for (var i=0; i < this.grid.cols; i++) {
 				var orb = this.grid.grid[j][i];
 				orb.drawOrb();	
@@ -78,15 +78,21 @@ $(document).ready(function () {
 		this.grid = []; //[row][col]
 		this.cols = 15;
 		this.rows = 10;
+		this.totalRows = 19;
 	};
 
 	GameGrid.prototype.fillGrid = function () {   /* populates grid with initial orbs */
 		
-		for (var j = 0; j<this.rows; j++) {
+		for (var j = 0; j < this.totalRows; j++) {
 			var row = [];
-			for (var i = 0; i<this.cols; i++){
-				var orb = new Orb([j, i]);
-				row.push(orb);
+			for (var i = 0; i < this.cols; i++){
+				if (j < this.rows) {
+					var orb = new Orb([j, i]);
+					row.push(orb);
+				}
+				else {
+					row.push('empty');
+				}
 			}
 			this.grid[j] = row;
 		}
