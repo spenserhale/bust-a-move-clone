@@ -142,7 +142,7 @@ $(document).ready(function () {
 	};
 
 	Orb.prototype.shootOrb = function () {
-		//do the thing!
+		console.log('orbs fired');
 	}
 
 	Queue = function () {
@@ -172,6 +172,9 @@ $(document).ready(function () {
 		mouseCoordsOnCanvas(); //handles drawAimer initiation, eventually will want to make this an attribute on the gameCanvas|* * *|
 		$('#canvas').on('mousemove', function () {
 			console.log(gameCanvas.mouseCoords);
+		})
+		$('#canvas').click(function () {
+			gameCanvas.queue.curr.shootOrb();
 		})
 		
 		//returns current mouse X and Y relative to canvas
