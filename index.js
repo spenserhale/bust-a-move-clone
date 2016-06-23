@@ -11,8 +11,8 @@ $(document).ready(function () {
 
 	/* populates canvas with visible orbs */
 	GameCanvas.prototype.fillCanvas = function () {
-		for (var j=0; j<5; j++) {
-			for (var i=0; i<15;i++) {
+		for (var j=0; j 	< this.grid.rows; j++) {
+			for (var i=0; i < this.grid.cols; i++) {
 				var orb = this.grid.grid[j][i];
 				orb.drawOrb();	
 			}
@@ -50,8 +50,11 @@ $(document).ready(function () {
 		}
 
 		function drawQueuedOrbs(that) {
-			that.queue.curr.drawOrb(230, 585); //draws first orb in queue to pointer location
-			that.queue.onDeck.drawOrb(170, 585);
+			var curr = that.queue.curr,
+				onDeck = that.queue.onDeck;
+
+			curr.drawOrb(curr.X, curr.Y); //draws first orb in queue to pointer location
+			onDeck.drawOrb(onDeck.X, onDeck.Y);  
 		};
 
 		function renderAimer (that) {
@@ -74,7 +77,7 @@ $(document).ready(function () {
 	GameGrid = function () {
 		this.grid = []; //[row][col]
 		this.cols = 15;
-		this.rows = 5;
+		this.rows = 10;
 	};
 
 	GameGrid.prototype.fillGrid = function () {   /* populates grid with initial orbs */
@@ -97,6 +100,7 @@ $(document).ready(function () {
 		this.diameter  = 30;
 		this.X 	       = this.getOrbCoords(position, this.diameter)[0];
 		this.Y 	       = this.getOrbCoords(position, this.diameter)[1];
+		this.gridPos   = this.getGridPosition();
 
 		function randomColor() {
 			var colors = ['#FFE600'/* yellow */,
@@ -112,15 +116,30 @@ $(document).ready(function () {
 	};
 
 	Orb.prototype.getOrbCoords = function (position, diameter) {
-		var row = position[0],
-			col = position[1],
+		var row       = position[0],
+			col       = position[1],
 			rowHeight = 29,
-			X   = 15 + diameter * col,
-			Y   = 15 + rowHeight * row;
+			X         = 15 + diameter * col,
+			Y         = 15 + rowHeight * row;
 
 		if (row % 2 != 0) X += 15;
 
 		return [X, Y];   //returns center [x, y] of orb
+	};
+
+	Orb.prototype.getGridPosition = function () {   // x and y will be the coordinates of the center of an orb
+		var rowHeight = 29,
+			x         = this.X,
+			y         = this.Y,
+			row       = Math.floor(y / rowHeight),
+			rowOffset = 0,
+			col;
+
+		if (row % 2 != 0) rowOffset = 15;
+
+		col = Math.floor((x-rowOffset) / this.diameter);
+
+		return {row: row, col: col};
 	};
 
 	/* Draws singular Orb */
@@ -150,6 +169,10 @@ $(document).ready(function () {
 		this.onDeckPos = [19, 1];
 		this.curr      = new Orb(this.currPos);
 		this.onDeck    = new Orb(this.onDeckPos);
+		this.curr.X    = 230;
+		this.curr.Y    = 585;
+		this.onDeck.X  = 170; 
+		this.onDeck.Y  = 585;
 	};
 
 	Queue.prototype.nextOrb = function () {
@@ -170,9 +193,11 @@ $(document).ready(function () {
 		gameCanvas = new GameCanvas;
 		gameCanvas.start();
 		mouseCoordsOnCanvas(); //handles drawAimer initiation, eventually will want to make this an attribute on the gameCanvas|* * *|
+		
 		$('#canvas').on('mousemove', function () {
 			console.log(gameCanvas.mouseCoords);
 		})
+		
 		$('#canvas').click(function () {
 			gameCanvas.queue.curr.shootOrb();
 		})
@@ -191,10 +216,6 @@ $(document).ready(function () {
 				mouseCoords = [canvasX, canvasY];
 				gameCanvas.drawAimer(mouseCoords); 
 			};	
-	
 		};
-
-		
 	});
-
 })
