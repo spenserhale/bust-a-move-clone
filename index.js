@@ -28,6 +28,7 @@ $(document).ready(function () {
 		$('#canvas-area').html(this.canvas); //adds canvas to the canvas area
 		this.grid.fillGrid(); // fills the grid with orb data
 		this.fillCanvas(); // fills the canvas with visible orbs
+		this.drawQueuedOrbs();
 	};
 
 	GameCanvas.prototype.drawAimer = function (mouseCoords) {
@@ -42,21 +43,15 @@ $(document).ready(function () {
         	mouseAngle = 180 + (180 + mouseAngle);
     	}	
 
-    	this.angle = mouseAngle;
+    	// this.angle = mouseAngle;
 
-    	renderAimer(this);
-		drawQueuedOrbs(this);
-
-		function drawQueuedOrbs(that) {
-			var curr = that.queue.curr,
-				onDeck = that.queue.onDeck;
-
-			curr.drawOrb(curr.X, curr.Y); //draws first orb in queue to pointer location
-			onDeck.drawOrb(onDeck.X, onDeck.Y);  
-		};
+    	renderAimer(this);	
 
 		function renderAimer (that) {
+			var curr = that.queue.curr;
+
 			context.clearRect(205, 560, 50, 50);
+			curr.drawOrb(curr.X, curr.Y);
 			that.context.beginPath();
 			context.lineWidth = 3;
 			context.strokeStyle = "green";	
@@ -67,12 +62,31 @@ $(document).ready(function () {
 		};
 	};
 
-	GameCanvas.prototype.shootOrb = function (dt) {
-		var curr = this.queue.curr
+	GameCanvas.prototype.drawQueuedOrbs = function () {
+		drawQueuedOrbs(this);
 
-		curr.X += dt * curr.speed * Math.cos(degToRad(this.angle));
-		curr.Y += dt * curr.speed * (-1 * Math.cos(degToRad(this.angle)));
-	}
+		function drawQueuedOrbs(that) {
+			var curr = that.queue.curr,
+				onDeck = that.queue.onDeck;
+
+			curr.drawOrb(curr.X, curr.Y); //draws first orb in queue to pointer location
+			onDeck.drawOrb(onDeck.X, onDeck.Y);
+		};
+	};
+
+	// GameCanvas.prototype.shootOrb = function () {
+	// 	var curr = this.queue.curr,
+	// 		now  = new Date().getTime(),
+ //        	dt   = now - (time || now),
+	// 		time;
+		
+	// 	console.log(dt);
+
+	// 	time = now;
+	// 	curr.X += dt * curr.speed * Math.cos(degToRad(this.angle));
+	// 	curr.Y += dt * curr.speed * (-1 * Math.cos(degToRad(this.angle)));
+
+	// }
 
 	/* array grid to store orb data and locations */
 	GameGrid = function () {
@@ -109,6 +123,7 @@ $(document).ready(function () {
 		this.Y 	       = this.getOrbCoords(position, this.diameter)[1];
 		this.gridPos   = this.getGridPosition();
 		this.speed     = 1;
+		this.angle     = 1;
 
 		function randomColor() {
 			var colors = ['#FFE600'/* yellow */,
@@ -202,7 +217,26 @@ $(document).ready(function () {
 		})
 		
 		$('#canvas').click(function () {
-			gameCanvas.shootOrb(1);
+			var curr = gameCanvas.queue.curr,
+				time;
+
+			gameCanvas.angle = getCurrentMouseAngle(gameCanvas.mouseCoords);
+			console.log(gameCanvas.angle);
+			draw();	
+			
+			function draw() {     /***************** BREAK THIS OUT INTO Orb.shootOrb *******************************/
+    			requestAnimationFrame(draw);
+    			var now = new Date().getTime(),
+        			dt = now - (time || now);
+ 
+			    time = now;
+			    context.clearRect(curr.X-17, curr.Y-17, 35, 35);
+				curr.X += dt * curr.speed * Math.cos(degToRad(gameCanvas.angle));
+				curr.Y += dt * curr.speed * (-1 * Math.sin(degToRad(gameCanvas.angle)));
+				curr.drawOrb();
+				console.log(curr.X, curr.Y);
+				// console.log(Math.cos(degToRad(gameCanvas.angle)), (-1 * Math.cos(degToRad(gameCanvas.angle))));
+			}
 		})
 		
 		//returns current mouse X and Y relative to canvas
@@ -217,7 +251,7 @@ $(document).ready(function () {
 				canvasX = event.pageX - canvasLeft;
 				canvasY = event.pageY - canvasTop;
 				mouseCoords = [canvasX, canvasY];
-				gameCanvas.drawAimer(mouseCoords); 
+				gameCanvas.drawAimer(mouseCoords);
 			};	
 		};
 	});
@@ -230,6 +264,20 @@ $(document).ready(function () {
 
 	function degToRad(angle) {
 		return angle * (Math.PI / 180);
+	}
+
+	function getCurrentMouseAngle(mouseCoords) {
+		var x = mouseCoords[0],
+			y = mouseCoords[1],
+			aimerX = 230,
+			aimerY = 600,
+			mouseAngle = radToDeg(Math.atan2((aimerY+15) - y, x - (aimerX+15)));
+			
+		if (mouseAngle < 0) {
+        	mouseAngle = 180 + (180 + mouseAngle);
+    	}
+    	console.log(mouseAngle);
+		return mouseAngle;
 	}
 
 
