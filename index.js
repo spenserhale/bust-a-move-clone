@@ -32,26 +32,19 @@ $(document).ready(function () {
 	};
 
 	GameCanvas.prototype.drawAimer = function (mouseCoords) {
-		var x = mouseCoords[0],
-			y = mouseCoords[1],
-			aimerX = 230,
+		var aimerX = 230,
 			aimerY = 600,
-			mouseAngle = radToDeg(Math.atan2((aimerY+15) - y, x - (aimerX+15)));
-			this.mouseCoords = mouseCoords;
-			
-		if (mouseAngle < 0) {
-        	mouseAngle = 180 + (180 + mouseAngle);
-    	}	
+			mouseAngle = getCurrentMouseAngle(mouseCoords);
 
-    	// this.angle = mouseAngle;
-
+		this.mouseCoords = mouseCoords,
+    	
     	renderAimer(this);	
 
 		function renderAimer (that) {
 			var curr = that.queue.curr;
 
 			context.clearRect(205, 560, 50, 50);
-			curr.drawOrb(curr.X, curr.Y);
+			if (curr.X === 230) curr.drawOrb();
 			that.context.beginPath();
 			context.lineWidth = 3;
 			context.strokeStyle = "green";	
@@ -62,16 +55,12 @@ $(document).ready(function () {
 		};
 	};
 
-	GameCanvas.prototype.drawQueuedOrbs = function () {
-		drawQueuedOrbs(this);
+	GameCanvas.prototype.drawQueuedOrbs = function () {  //remove nested function from this attr
+		var curr = this.queue.curr,
+			onDeck = this.queue.onDeck;
 
-		function drawQueuedOrbs(that) {
-			var curr = that.queue.curr,
-				onDeck = that.queue.onDeck;
-
-			curr.drawOrb(curr.X, curr.Y); //draws first orb in queue to pointer location
-			onDeck.drawOrb(onDeck.X, onDeck.Y);
-		};
+		curr.drawOrb(); //draws first orb in queue to pointer location
+		onDeck.drawOrb();
 	};
 
 	// GameCanvas.prototype.shootOrb = function () {
@@ -119,10 +108,10 @@ $(document).ready(function () {
 		this.color     = randomColor();
 		this.neighbors = [];
 		this.diameter  = 30;
-		this.X 	       = this.getOrbCoords(position, this.diameter)[0];
-		this.Y 	       = this.getOrbCoords(position, this.diameter)[1];
+		this.X 	       = this.getOrbCoords()[0];
+		this.Y 	       = this.getOrbCoords()[1];
 		this.gridPos   = this.getGridPosition();
-		this.speed     = 1;
+		this.speed     = .25;
 		this.angle     = 1;
 
 		function randomColor() {
@@ -139,10 +128,10 @@ $(document).ready(function () {
 	};
 
 	Orb.prototype.getOrbCoords = function (position, diameter) {
-		var row       = position[0],
-			col       = position[1],
+		var row       = this.position[0],
+			col       = this.position[1],
 			rowHeight = 29,
-			X         = 15 + diameter * col,
+			X         = 15 + this.diameter * col,
 			Y         = 15 + rowHeight * row;
 
 		if (row % 2 != 0) X += 15;
@@ -161,6 +150,8 @@ $(document).ready(function () {
 		if (row % 2 != 0) rowOffset = 15;
 
 		col = Math.floor((x-rowOffset) / this.diameter);
+
+		this.pos = [row, col];
 
 		return {row: row, col: col};
 	};
@@ -183,6 +174,23 @@ $(document).ready(function () {
 	    context.stroke();
 	};
 
+	Orb.prototype.clearOrb = function (x, y) {
+		context = gameCanvas.context;
+		context.beginPath();
+		if (x && y) {
+			context.arc(x, y, this.diameter/2, 0, 2 * Math.PI, false);	
+		}
+		else {
+			context.arc(this.X, this.Y, (this.diameter/2)+1, 0, 2 * Math.PI, false);
+		}
+	    context.fillStyle = 'white';
+	    context.fill();
+	    context.lineWidth = 0;
+	    context.strokeStyle = 'white';
+	    context.closePath();
+	    context.stroke();
+	};
+
 	Queue = function () {
 		this.currPos   = [18, 7]; 
 		this.onDeckPos = [19, 1];
@@ -197,6 +205,13 @@ $(document).ready(function () {
 	Queue.prototype.nextOrb = function () {
 		this.curr = this.onDeck;
 		this.onDeck = new Orb(this.onDeckPos);
+		this.curr.X    = 230;
+		this.curr.Y    = 585;
+		this.onDeck.X  = 170; 
+		this.onDeck.Y  = 585;
+		this.onDeck.clearOrb();
+		this.onDeck.drawOrb();
+		this.curr.drawOrb();
 	};
 //						TO-DO:
 //-------------------------------------------------------
@@ -220,22 +235,53 @@ $(document).ready(function () {
 			var curr = gameCanvas.queue.curr,
 				time;
 
-			gameCanvas.angle = getCurrentMouseAngle(gameCanvas.mouseCoords);
-			console.log(gameCanvas.angle);
-			draw();	
+			curr.angle = getCurrentMouseAngle(gameCanvas.mouseCoords);
+			draw();
 			
-			function draw() {     /***************** BREAK THIS OUT INTO Orb.shootOrb *******************************/
-    			requestAnimationFrame(draw);
+			function draw() {     /***************** BREAK THIS OUT INTO Orb.shootOrb ?*******************************/
     			var now = new Date().getTime(),
         			dt = now - (time || now);
  
 			    time = now;
-			    context.clearRect(curr.X-17, curr.Y-17, 35, 35);
-				curr.X += dt * curr.speed * Math.cos(degToRad(gameCanvas.angle));
-				curr.Y += dt * curr.speed * (-1 * Math.sin(degToRad(gameCanvas.angle)));
+			    curr.clearOrb();
+				curr.X += dt * curr.speed * Math.cos(degToRad(curr.angle));
+				curr.Y += dt * curr.speed * (-1 * Math.sin(degToRad(curr.angle)));
+				
+				if (curr.X-15 <= 0) {   //if orb hits left bounce off wall
+					curr.angle = 180 - curr.angle;
+					curr.X = 15;
+				}
+				else if (curr.X + 15 >= gameCanvas.canvas.width) {  //if orb hits right bounce off wall
+					curr.angle = 180 - curr.angle;
+					curr.X = gameCanvas.canvas.width - 15;
+				}
+
+				if (curr.Y <= 0) {   //if orb hits top snap to grid
+					curr.Y = 0;
+					cancelAnimationFrame(animFrame);
+					snapOrb();
+					return;
+				}
+
 				curr.drawOrb();
-				console.log(curr.X, curr.Y);
-				// console.log(Math.cos(degToRad(gameCanvas.angle)), (-1 * Math.cos(degToRad(gameCanvas.angle))));
+
+				var rows = gameCanvas.grid.rows,
+					cols = gameCanvas.grid.cols;
+
+				for (var i = 0; i < cols; i++) {
+					for (var j = 0; j < rows; j++) {
+						var orb = gameCanvas.grid.grid[i][j];
+
+						if (orb === 'empty') continue;
+ 
+						if (circleIntersection(curr.X-15, curr.Y-15, curr.diameter/2, orb.X-15, orb.Y-15, orb.diameter/2)) {
+							cancelAnimationFrame(animFrame);
+							snapOrb();
+							return;
+						}
+					}
+				}
+				var animFrame = requestAnimationFrame(draw);
 			}
 		})
 		
@@ -276,8 +322,34 @@ $(document).ready(function () {
 		if (mouseAngle < 0) {
         	mouseAngle = 180 + (180 + mouseAngle);
     	}
-    	console.log(mouseAngle);
+
 		return mouseAngle;
+	}
+
+	function circleIntersection(x1, y1, r1, x2, y2, r2) {
+		var dx = x1 - x2,
+			dy = y1 - y2,
+			len = Math.sqrt(dx * dx + dy * dy);
+
+		if (len < r1 + r2) return true;
+
+		return false;
+	}
+
+	function snapOrb() {                     //puts orb into data grid
+		var curr = gameCanvas.queue.curr,
+			grid = gameCanvas.grid.grid;
+
+		curr.getGridPosition();
+		console.log(curr.pos, curr.X, curr.Y);
+		
+		var row = curr.pos[0],
+			col = curr.pos[1];
+		
+		grid[row][col] = curr;
+		gameCanvas.queue.nextOrb();
+		console.log('next');
+		console.log(curr.getOrbCoords());
 	}
 
 
