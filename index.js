@@ -110,7 +110,7 @@ $(document).ready(function () {
 		this.diameter  = 30;
 		this.X 	       = this.getOrbCoords()[0];
 		this.Y 	       = this.getOrbCoords()[1];
-		this.gridPos   = this.getGridPosition();
+		// this.gridPos   = this.getGridPosition();
 		this.speed     = .25;
 		this.angle     = 1;
 
@@ -151,13 +151,13 @@ $(document).ready(function () {
 
 		col = Math.floor((x-rowOffset) / this.diameter);
 
-		this.pos = [row, col];
+		this.position = [row, col];
 
 		return {row: row, col: col};
 	};
 
 	/* Draws singular Orb */
-	Orb.prototype.drawOrb = function (x, y) {
+	Orb.prototype.drawOrb = function (x, y) {   //draws the orb to the current x,y position
 		context = gameCanvas.context;
 		context.beginPath();
 		if (x && y) {
@@ -174,7 +174,7 @@ $(document).ready(function () {
 	    context.stroke();
 	};
 
-	Orb.prototype.clearOrb = function (x, y) {
+	Orb.prototype.clearOrb = function (x, y) {    //clears the current space the orb occupies
 		context = gameCanvas.context;
 		context.beginPath();
 		if (x && y) {
@@ -304,15 +304,15 @@ $(document).ready(function () {
 
 	/* ***************** PUBLIC FUNCTIONS *********************** */
 
-	function radToDeg(angle) {
+	function radToDeg(angle) {     				//turns radians into degrees
 	    return angle * (180 / Math.PI);
 	}
 
-	function degToRad(angle) {
+	function degToRad(angle) {					// turns degrees into radians
 		return angle * (Math.PI / 180);
 	}
 
-	function getCurrentMouseAngle(mouseCoords) {
+	function getCurrentMouseAngle(mouseCoords) {   //returns the current angle of the mouse relative to the queued orb
 		var x = mouseCoords[0],
 			y = mouseCoords[1],
 			aimerX = 230,
@@ -326,7 +326,7 @@ $(document).ready(function () {
 		return mouseAngle;
 	}
 
-	function circleIntersection(x1, y1, r1, x2, y2, r2) {
+	function circleIntersection(x1, y1, r1, x2, y2, r2) {  //checks to see if the 2 circles intersect
 		var dx = x1 - x2,
 			dy = y1 - y2,
 			len = Math.sqrt(dx * dx + dy * dy);
@@ -337,20 +337,28 @@ $(document).ready(function () {
 	}
 
 	function snapOrb() {                     //puts orb into data grid
+		console.log('snapped');
 		var curr = gameCanvas.queue.curr,
-			grid = gameCanvas.grid.grid;
+			grid = gameCanvas.grid.grid,
+			rowOffset = 0;
+
+		curr.clearOrb();
 
 		curr.getGridPosition();
-		console.log(curr.pos, curr.X, curr.Y);
 		
-		var row = curr.pos[0],
-			col = curr.pos[1];
+		var row = curr.position[0],
+			col = curr.position[1];
+
+		if (curr.position[0] % 2 != 0) rowOffset = 15;
+		
+		curr.X = curr.diameter/2 + col * curr.diameter + rowOffset;
+		curr.Y = curr.diameter/2 + row * 29;
 		
 		grid[row][col] = curr;
-		gameCanvas.queue.nextOrb();
-		console.log('next');
-		console.log(curr.getOrbCoords());
-	}
 
+		curr.drawOrb();
+
+		gameCanvas.queue.nextOrb();
+	}
 
 })
