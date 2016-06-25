@@ -36,9 +36,9 @@ $(document).ready(function () {
             aimerY = 600,
             mouseAngle = getCurrentMouseAngle(mouseCoords);
 
-        this.mouseCoords = mouseCoords,
-
-            renderAimer(this);
+        this.mouseCoords = mouseCoords;
+        
+        renderAimer(this);
 
         function renderAimer(that) {
             var curr = that.queue.curr;
@@ -54,7 +54,7 @@ $(document).ready(function () {
             that.context.lineTo(aimerX + 1.5 * 15 * Math.cos(degToRad(mouseAngle)),
                 (aimerY - 15) - 1.5 * 15 * Math.sin(degToRad(mouseAngle)));
             that.context.stroke();
-        };
+        }
     };
 
     GameCanvas.prototype.drawQueuedOrbs = function () {  //remove nested function from this attr
@@ -113,7 +113,7 @@ $(document).ready(function () {
         this.X = this.getOrbCoords()[0];
         this.Y = this.getOrbCoords()[1];
         // this.gridPos   = this.getGridPosition();
-        this.speed = .25;
+        this.speed = 0.25;
         this.angle = 1;
 
         function randomColor() {
@@ -128,7 +128,7 @@ $(document).ready(function () {
             ];
 
             return colors[Math.floor(Math.random() * colors.length)];
-        };
+        }
     };
 
     Orb.prototype.getOrbCoords = function (position, diameter) {
@@ -237,7 +237,7 @@ $(document).ready(function () {
 
         $('#canvas').on('mousemove', function () {
             // console.log(gameCanvas.mouseCoords);
-        })
+        });
 
         $('#canvas').click(function () {
             var curr = gameCanvas.queue.curr,
@@ -249,7 +249,8 @@ $(document).ready(function () {
             function draw() {
                 /***************** BREAK THIS OUT INTO Orb.shootOrb ?*******************************/
                 var now = new Date().getTime(),
-                    dt = now - (time || now);
+                    dt = now - (time || now),
+                    animFrame;
 
                 time = now;
                 curr.clearOrb();
@@ -277,8 +278,8 @@ $(document).ready(function () {
                 var rows = gameCanvas.grid.rows,
                     cols = gameCanvas.grid.cols;
 
-                for (var i = 0; i < cols; i++) {
-                    for (var j = 0; j < rows; j++) {
+                for (var i = 0; i < rows; i++) {
+                    for (var j = 0; j < cols; j++) {
                         var orb = gameCanvas.grid.grid[i][j];
 
                         if (orb === 'empty') {
@@ -292,9 +293,9 @@ $(document).ready(function () {
                         }
                     }
                 }
-                var animFrame = requestAnimationFrame(draw);
+                animFrame = requestAnimationFrame(draw);
             }
-        })
+        });
 
         //returns current mouse X and Y relative to canvas
         function mouseCoordsOnCanvas() {
@@ -309,8 +310,8 @@ $(document).ready(function () {
                 canvasY = event.pageY - canvasTop;
                 mouseCoords = [canvasX, canvasY];
                 gameCanvas.drawAimer(mouseCoords);
-            };
-        };
+            }
+        }
     });
 
     /* ***************** PUBLIC FUNCTIONS *********************** */
@@ -342,11 +343,7 @@ $(document).ready(function () {
             dy = y1 - y2,
             len = Math.sqrt(dx * dx + dy * dy);
 
-        if (len < r1 + r2) {
-            return true;
-        }
-
-        return false;
+        return len < r1 + r2;
     }
 
     function snapOrb() {                     //puts orb into data grid
@@ -376,4 +373,4 @@ $(document).ready(function () {
         gameCanvas.queue.nextOrb();
     }
 
-})
+});
