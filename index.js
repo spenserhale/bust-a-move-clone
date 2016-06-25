@@ -37,7 +37,7 @@ $(document).ready(function () {
             mouseAngle = getCurrentMouseAngle(mouseCoords);
 
         this.mouseCoords = mouseCoords;
-        
+
         renderAimer(this);
 
         function renderAimer(that) {
